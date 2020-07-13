@@ -144,7 +144,7 @@ class SourceTrack(models.Model):
     title = models.CharField(max_length=200)
     # DateTime when user added the song
     date_created = models.DateTimeField(auto_now_add=True)
-    
+
     def url(self):
         """Get the URL of the source file."""
         if self.source_file.file:
@@ -232,7 +232,7 @@ class ProcessedTrack(models.Model):
 
     def source_path(self):
         """
-        
+
         """
         return self.source_track.source_file.file.path
 

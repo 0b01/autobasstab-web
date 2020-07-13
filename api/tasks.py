@@ -37,8 +37,7 @@ def separate_task(processing_track):
         # Get paths
         directory = os.path.join(settings.MEDIA_ROOT, settings.SEPARATE_DIR, str(processing_track.id))
         filename = slugify(processing_track.formatted_name()) + '.mp3'
-        rel_media_path = os.path.join(settings.SEPARATE_DIR, str(processing_track.id), filename)
-        rel_path = os.path.join(settings.MEDIA_ROOT, rel_media_path)
+        rel_dir_name = os.path.join(settings.SEPARATE_DIR, str(processing_track.id))
         pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
         separator = SpleeterSeparator()
 
@@ -51,29 +50,51 @@ def separate_task(processing_track):
 
         # Non-local filesystems like S3/Azure Blob do not support source_path()
         is_local = settings.DEFAULT_FILE_STORAGE == 'django.core.files.storage.FileSystemStorage'
-        path = processing_track.source_path() if is_local else processing_track.source_url()
-        separator.separate(parts, path, rel_path)
-
-        # Check file exists
-        if os.path.exists(rel_path):
-            processing_track.status = ProcessedTrack.Status.DONE
-            if is_local:
-                # File is already on local filesystem
-                processing_track.file.name = rel_media_path
-            else:
-                # Need to copy local file to S3/Azure Blob/etc.
-                raw_file = open(rel_path, 'rb')
-                content_file = ContentFile(raw_file.read())
-                content_file.name = filename
-                processing_track.file = content_file
-                rel_dir_path = os.path.join(settings.MEDIA_ROOT, settings.SEPARATE_DIR, str(processing_track.id))
-                # Remove local file
-                os.remove(rel_path)
-                # Remove empty directory
-                os.rmdir(rel_dir_path)
-            processing_track.save()
+        inpath = processing_track.source_path() if is_local else processing_track.source_url()
+        already_separated = ProcessedTrack.objects.filter(source_track=processing_track.source_track, bass=True, drums=False,vocals=False,other=False,status=ProcessedTrack.Status.DONE).exists()
+        print(already_separated)
+        if already_separated:
+            print("already exists")
+            paths = separator.cached(parts, processing_track.source_track, rel_dir_name, filename)
         else:
-            raise Exception('Error writing to file')
+            paths = separator.separate(parts, inpath, rel_dir_name, filename)
+
+        for key, rel_path in paths.items():
+            instance = ''
+            if key != "req":
+                instance, created = ProcessedTrack.objects.get_or_create(
+                    source_track=processing_track.source_track,
+                    vocals= key == "vocals",
+                    drums= key == "drums",
+                    bass= key == "bass",
+                    other= key == "other")
+                print(instance, created)
+            else:
+                instance = processing_track
+
+            root_path = os.path.join(settings.MEDIA_ROOT, rel_path)
+            # Check file exists
+            if os.path.exists(root_path):
+                instance.status = ProcessedTrack.Status.DONE
+                if is_local:
+                    print(rel_path)
+                    # File is already on local filesystem
+                    instance.file.name = rel_path
+                else:
+                    # Need to copy local file to S3/Azure Blob/etc.
+                    if key == "req" or not already_separated:
+                        raw_file = open(root_path, 'rb')
+                        content_file = ContentFile(raw_file.read())
+                        content_file.name = filename
+                        instance.file = content_file
+                        rel_dir_path = os.path.join(settings.MEDIA_ROOT, rel_path)
+                        # Remove local file
+                        os.remove(root_path)
+                        # Remove empty directory
+                        os.rmdir(rel_dir_path)
+                instance.save()
+            else:
+                raise Exception('Error writing to file')
     except FileNotFoundError as error:
         print(error)
         print('Please make sure you have FFmpeg and FFprobe installed.')

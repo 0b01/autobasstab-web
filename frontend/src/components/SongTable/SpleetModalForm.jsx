@@ -36,7 +36,7 @@ class SpleetModalForm extends React.Component {
 
     return (
       <Form>
-        <Form.Group as={Row} controlId="formGridFirst" className="mb-2">
+        {/* <Form.Group as={Row} controlId="formGridFirst" className="mb-2">
           <Form.Label column sm="2">
             Title:
           </Form.Label>
@@ -51,9 +51,9 @@ class SpleetModalForm extends React.Component {
           <Col>
             <Form.Control name="artist" disabled value={song.artist} />
           </Col>
-        </Form.Group>
+        </Form.Group> */}
         <Form.Group>
-          <Form.Label>Parts to keep:</Form.Label>
+          <Form.Label>Make mp3 with selected instruments:</Form.Label>
           <div className="ml-3">{checkboxes}</div>
         </Form.Group>
         <Form.Group controlId="overwrite-checkbox">

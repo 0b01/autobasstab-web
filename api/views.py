@@ -19,7 +19,8 @@ class YTLinkInfoView(APIView):
         """Parse YouTube link and metadata."""
         serializer = YTLinkSerializer(data=request.query_params)
         if not serializer.is_valid():
-            return JsonResponse({'status': 'error', 'errors': ['Invalid YouTube link']}, status=400)
+            err = str(serializer.errors['link'][0])
+            return JsonResponse({'status': 'error', 'errors': [err]}, status=400)
 
         data = serializer.validated_data
         info = get_meta_info(data['link'])
@@ -69,7 +70,7 @@ class SourceFileView(viewsets.ModelViewSet):
         if not serializer.is_valid():
             errors = list(map(str, serializer.errors['file']))
             return JsonResponse({'status': 'error', 'errors': errors}, status=400)
-        
+
         source_file = serializer.save()
         # Create response containing SourceFile ID and suggested artist/title metadata
         (artist, title) = source_file.metadata()
@@ -184,6 +185,7 @@ class ProcessedTrackCreateView(generics.ListCreateAPIView):
         ProcessedTrack.objects.filter(source_track=source, vocals=vocals, drums=drums, bass=bass, other=other).exclude(status=ProcessedTrack.Status.IN_PROGRESS).delete()
 
     def create(self, request, *args, **kwargs):
+        self.request = request
         """Handle ProcessedTrack creation."""
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
