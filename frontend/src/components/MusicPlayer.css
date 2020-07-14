@@ -1203,7 +1203,7 @@
   overflow: initial !important;
   text-align: initial !important;
   white-space: initial !important;
-  background-color: initial !important;
+  /* background-color: initial !important; */
 }
 
 .audio-lists-panel-content .audio-item .player-name {

@@ -1,12 +1,15 @@
 import React, { Component } from 'react'
 import axios from 'axios'
-import { Alert } from 'react-bootstrap'
+import { Alert, ProgressBar } from 'react-bootstrap'
 import MusicPlayer from './MusicPlayer'
 import MyNavBar from './MyNavBar'
 import SongTable from './SongTable/SongTable'
 import DeleteModal from './SongTable/DeleteModal'
 import SpleetModal from './SongTable/SpleetModal'
 import UploadModal from './Upload/UploadModal'
+import * as tf from '@tensorflow/tfjs';
+import { buffer } from '@tensorflow/tfjs'
+import worker_script from "./worker.js";
 
 /**
  * Home component where main functionality happens, consisting of the main nav bar
@@ -16,6 +19,8 @@ class Home extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      crepe_total: 0,
+      crepe_progress: 0,
       showDeleteModal: false, // Whether to show delete track modal
       showSpleetModal: false, // Whether to show source separation modal
       showUploadModal: false, // Whether to show upload modal
@@ -28,6 +33,8 @@ class Home extends Component {
       task: null,             // The separation task that was just submitted
       expandedIds: []         // List of IDs of expanded rows
     }
+
+
   }
 
   getAudioInstance = instance => {
@@ -163,6 +170,67 @@ class Home extends Component {
     this.setState({ showSpleetModal: true, currentModalSong: song })
   }
 
+  onTabClick = song => {
+    var context = new (window.AudioContext || window.webkitAudioContext)();
+    var audioSrc = song.processed[0].url;
+
+    var fetch = (url, resolve) => {
+      var request = new XMLHttpRequest();
+      request.open('GET', url, true);
+      request.responseType = 'arraybuffer';
+      request.onload = function () { resolve(request) }
+      request.send()
+    }
+
+
+    var onSuccess = (request) => {
+      var audioData = request.response;
+      context.decodeAudioData(audioData, onBuffer, onDecodeBufferError)
+    }
+
+    // perform resampling the audio to 16000 Hz, on which the model is trained.
+    // setting a sample rate in AudioContext is not supported by most browsers at the moment.
+    var resample = (audioBuffer, onComplete) => {
+      const multiplier = audioBuffer.sampleRate / 16000;
+      const original = audioBuffer.getChannelData(0);
+      var ret = [];
+      var i;
+      for (i = 0; i < original.length; i += multiplier) {
+        ret.push(original[Math.floor(i)]);
+      }
+      onComplete(ret);
+    }
+
+
+    var onBuffer = (buffer) => {
+      // var source = context.createBufferSource();
+      // console.info('Got the buffer', buffer);
+      // source.buffer = buffer;
+      // source.connect(context.destination);
+      // source.loop = true;
+      // source.start();
+
+      resample(buffer, (resampled) => {
+        var myWorker = new Worker(worker_script);
+
+        myWorker.onmessage = (m) => {
+            // console.log("msg from worker: ", m.data);
+            this.setState(m.data);
+        };
+        myWorker.postMessage(resampled);
+
+      });
+    }
+
+    var onDecodeBufferError = (e) => {
+      console.log('Error decoding buffer: ' + e.message);
+      console.log(e);
+    }
+
+    fetch(audioSrc, onSuccess);
+
+  }
+
   onUploadClick = () => {
     this.setState({ showUploadModal: true })
   }
@@ -246,6 +314,7 @@ class Home extends Component {
                 </span>
               </Alert>
             )}
+            <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100}/>
             <SongTable
               data={songList}
               currentSongUrl={currentSongUrl}
@@ -255,6 +324,7 @@ class Home extends Component {
               onExpandAll={this.onExpandAll}
               onDeleteClick={this.onDeleteClick}
               onSpleetClick={this.onSpleetClick}
+              onTabClick={this.onTabClick}
               onSepSongPauseClick={this.onSepSongPauseClick}
               onSepSongPlayClick={this.onSepSongPlayClick}
               onSrcSongPauseClick={this.onSrcSongPauseClick}
