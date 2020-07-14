@@ -170,27 +170,28 @@ class Home extends Component {
     this.setState({ showSpleetModal: true, currentModalSong: song })
   }
 
-  onTabClick = song => {
+  onTabClick = async (song) => {
+    if (this.state.crepe_result != null) {
+      console.log("already run crepe");
+      this.run_notes(this.state.crepe_result);
+      return 0;
+    }
     var context = new (window.AudioContext || window.webkitAudioContext)();
     var audioSrc = song.processed[0].url;
 
-    var fetch = (url, resolve) => {
-      var request = new XMLHttpRequest();
-      request.open('GET', url, true);
-      request.responseType = 'arraybuffer';
-      request.onload = function () { resolve(request) }
-      request.send()
-    }
+    // var fetch = (url, resolve) => {
+    //   var request = new XMLHttpRequest();
+    //   request.open('GET', url, true);
+    //   request.responseType = 'arraybuffer';
+    //   request.onload = function () { resolve(request) }
+    //   request.send()
+    // }
 
 
-    var onSuccess = (request) => {
-      var audioData = request.response;
-      context.decodeAudioData(audioData, onBuffer, onDecodeBufferError)
-    }
 
     // perform resampling the audio to 16000 Hz, on which the model is trained.
     // setting a sample rate in AudioContext is not supported by most browsers at the moment.
-    var resample = (audioBuffer, onComplete) => {
+    var resample = (audioBuffer) => {
       const multiplier = audioBuffer.sampleRate / 16000;
       const original = audioBuffer.getChannelData(0);
       var ret = [];
@@ -198,37 +199,60 @@ class Home extends Component {
       for (i = 0; i < original.length; i += multiplier) {
         ret.push(original[Math.floor(i)]);
       }
-      onComplete(ret);
+      return ret;
     }
 
+    let audio = await fetch(audioSrc);
+    console.log(audio);
+    var audioData = await audio.arrayBuffer();
+    let buffer = await context.decodeAudioData(audioData);
 
-    var onBuffer = (buffer) => {
-      // var source = context.createBufferSource();
-      // console.info('Got the buffer', buffer);
-      // source.buffer = buffer;
-      // source.connect(context.destination);
-      // source.loop = true;
-      // source.start();
+    const resampled = resample(buffer);
+    var myWorker = new Worker(worker_script);
+    myWorker.onmessage = (m) => {
+        // console.log("msg from worker: ", m.data);
+        this.setState(m.data);
+        if (m.data.hasOwnProperty("crepe_result")) {
+          this.run_notes(m.data.crepe_result);
+        }
+    };
+    myWorker.postMessage(resampled);
+  }
 
-      resample(buffer, (resampled) => {
-        var myWorker = new Worker(worker_script);
+  run_notes = async (crepe_result) => {
+    let get_notes = Module.cwrap("get_notes", 'number', ['number', 'number', 'number', 'number']);
 
-        myWorker.onmessage = (m) => {
-            // console.log("msg from worker: ", m.data);
-            this.setState(m.data);
-        };
-        myWorker.postMessage(resampled);
-
-      });
+    function transferToHeap(arr) {
+      const floatArray = toFloatArr(arr);
+      let heapSpace = Module._malloc(floatArray.length *
+                          floatArray.BYTES_PER_ELEMENT); // 1
+      Module.HEAPF32.set(floatArray, heapSpace >> 2); // 2
+      return heapSpace;
+      function toFloatArr(arr) {
+        const res = new Float32Array(arr.length); // 3
+          for (let i=0; i < arr.length; i++)
+              res[i] = arr[i];
+          return res;
+      }
     }
 
-    var onDecodeBufferError = (e) => {
-      console.log('Error decoding buffer: ' + e.message);
-      console.log(e);
+    function gn(freq, lvl) {
+      let arrayOnHeap; // 4.
+      try {
+          let f = transferToHeap(freq);
+          let l = transferToHeap(lvl);
+          let o = transferToHeap(new Array(freq.length * 3).fill(0));
+          console.log(o);
+          let ret_sz = get_notes(o, lvl.length, l, f);
+          console.log(ret_sz);
+          return Module.HEAPF32.subarray((o>>2), (o>>2) + ret_sz);
+      } finally {
+      // Module._free(arrayOnHeap); // 5.
+      }
     }
 
-    fetch(audioSrc, onSuccess);
-
+    let out = gn(crepe_result.freq, crepe_result.level);
+    console.log(out);
   }
 
   onUploadClick = () => {

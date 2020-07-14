@@ -10,5 +10,8 @@
         "migrate": "python3 manage.py makemigrations api && python3 manage.py migrate",
         "huey": "python3 manage.py run_huey",
         "clean": "rm -r media/separate/* && rm -r media/uploads/*"
+    },
+    "dependencies": {
+        "react-wasm": "^1.0.1"
     }
 }

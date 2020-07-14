@@ -12,10 +12,12 @@
 <body>
   <div id="react"></div>
   {% if DJANGO_DEVELOPMENT %}
+  <script src="{% static "notes.js" %}"></script>
     {% render_bundle 'main' 'js' %}
     {% render_bundle 'runtime' 'js' %}
     {% render_bundle 'vendors' 'js' %}
   {% else %}
+    <script src="{% static "notes.js" %}"></script>
     <script src="{% static "dist/main.js" %}"></script>
     <script src="{% static "dist/runtime.js" %}"></script>
     <script src="{% static "dist/vendors.js" %}"></script>
