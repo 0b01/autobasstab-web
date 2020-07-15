@@ -9,7 +9,9 @@ import SpleetModal from './SongTable/SpleetModal'
 import UploadModal from './Upload/UploadModal'
 import * as tf from '@tensorflow/tfjs';
 import { buffer } from '@tensorflow/tfjs'
-import worker_script from "./worker.js";
+import CrepeWorker from "./crepe.js";
+import PitchShiftWorker from "./pitchshift.js";
+
 
 /**
  * Home component where main functionality happens, consisting of the main nav bar
@@ -19,6 +21,8 @@ class Home extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      pitchshift_total: 0,
+      pitchshift_progress: 0,
       crepe_total: 0,
       crepe_progress: 0,
       showDeleteModal: false, // Whether to show delete track modal
@@ -171,13 +175,16 @@ class Home extends Component {
   }
 
   onTabClick = async (song) => {
-    if (this.state.crepe_result != null) {
-      console.log("already run crepe");
-      this.run_notes(this.state.crepe_result);
-      return 0;
-    }
     var context = new (window.AudioContext || window.webkitAudioContext)();
-    var audioSrc = song.processed[0].url;
+    var audioSrc = (() => {
+      console.log(song);
+      for (let t of song.processed) {
+        if (t?.bass && !t.other && !t.drums && !t.vocals) {
+          return t.url;
+        }
+      }
+    })();
+    console.log(audioSrc);
 
     // var fetch = (url, resolve) => {
     //   var request = new XMLHttpRequest();
@@ -203,23 +210,49 @@ class Home extends Component {
     }
 
     let audio = await fetch(audioSrc);
-    console.log(audio);
     var audioData = await audio.arrayBuffer();
     let buffer = await context.decodeAudioData(audioData);
 
+    let shifted = await new Promise(resolve => {
+        let pitchshift_worker = new Worker(PitchShiftWorker);
+        pitchshift_worker.onmessage = (m) => {
+          this.setState(m.data);
+          if (m.data.hasOwnProperty("pitchshift_result")) {
+            resolve(m.data.pitchshift_result);
+          }
+        };
+        pitchshift_worker.postMessage({
+          buf: buffer.getChannelData(0),
+          sampleRate: buffer.sampleRate,
+        });
+      });
+
+    buffer.copyToChannel(shifted, 0, 0);
+
+    // let a = new Audio();
+    // let audioCtx = new AudioContext();
+    // let source = audioCtx.createBufferSource();
+    // source.buffer = buffer;
+    // source.connect(audioCtx.destination);
+    // source.start();
+
     const resampled = resample(buffer);
-    var myWorker = new Worker(worker_script);
-    myWorker.onmessage = (m) => {
-        // console.log("msg from worker: ", m.data);
-        this.setState(m.data);
-        if (m.data.hasOwnProperty("crepe_result")) {
-          this.run_notes(m.data.crepe_result);
-        }
-    };
-    myWorker.postMessage(resampled);
+    let pitch_track = await new Promise(resolve => {
+      let myWorker = new Worker(CrepeWorker);
+      myWorker.onmessage = (m) => {
+          this.setState(m.data);
+          if (m.data.hasOwnProperty("crepe_result")) {
+            resolve(m.data.crepe_result);
+          }
+      };
+      myWorker.postMessage(resampled);
+    });
+
+    let {arrangement, track} = this.run_notes(pitch_track);
+    console.log(arrangement, track);
   }
 
-  run_notes = async (crepe_result) => {
+  run_notes = (crepe_result) => {
     let get_notes = Module.cwrap("get_notes", 'number', ['number', 'number', 'number', 'number']);
 
     function transferToHeap(arr) {
@@ -251,8 +284,11 @@ class Home extends Component {
       }
     }
 
-    let out = gn(crepe_result.freq, crepe_result.level);
-    console.log(out);
+    let track = gn(crepe_result.freq, crepe_result.level);
+    let mut_arrangement = new Int8Array(track.length / 3 * 2).fill(22);
+    frets(-12, mut_arrangement, track);
+
+    return {arrangement: mut_arrangement, track};
   }
 
   onUploadClick = () => {
@@ -338,7 +374,8 @@ class Home extends Component {
                 </span>
               </Alert>
             )}
-            <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100}/>
+            <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"PitchShift(" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ")"}/>
+            <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={"PitchTrack("+this.state.crepe_progress +'/'+ this.state.crepe_total+")"}/>
             <SongTable
               data={songList}
               currentSongUrl={currentSongUrl}
