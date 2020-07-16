@@ -19,7 +19,7 @@ import * as LPF from "low-pass-filter";
 const TEST = false;
 const TEST_SECONDS = 10;
 const PLAY = false;
-const USE_UNMIXED = false;
+const USE_UNMIXED = true;
 
 function qsToJson(qs) {
   var res = {};
@@ -215,6 +215,7 @@ class Home extends Component {
   }
 
   onTabClick = async (song) => {
+    console.log(song);
     // let info = await get_youtube_info("ml-v1bgMJDQ");
     // console.log(info);
     // return 0;
