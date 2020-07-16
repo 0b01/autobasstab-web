@@ -10,13 +10,15 @@ import UploadModal from './Upload/UploadModal'
 import Tab from './Tab'
 import * as tf from '@tensorflow/tfjs';
 import { buffer } from '@tensorflow/tfjs'
+// import CrepeWorker from "./spice.js";
 import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
-// import * as LPF from "low-pass-filter";
+import * as LPF from "low-pass-filter";
 
-const TEST = false;
-
-
+const TEST = true;
+const PLAY = false;
+const TEST_SECONDS = 30;
+const USE_UNMIXED = false;
 
 /**
  * Home component where main functionality happens, consisting of the main nav bar
@@ -182,17 +184,20 @@ class Home extends Component {
 
   onTabClick = async (song) => {
     var context = new (window.AudioContext || window.webkitAudioContext)();
-    var audioSrc = (() => {
-      console.log(song);
-      for (let t of song.processed) {
-        if (t?.bass && !t.other && !t.drums && !t.vocals) {
-          return t.url;
+    let audioSrc;
+    if (USE_UNMIXED) {
+      audioSrc = (() => {
+        console.log(song);
+        for (let t of song.processed) {
+          if (t?.bass && !t.other && !t.drums && !t.vocals) {
+            return t.url;
+          }
         }
-      }
-    })();
-    // let audioSrc = song.url;
+      })();
+    } else {
+      audioSrc = song.url;
+    }
     console.log(audioSrc);
-
 
     // perform resampling the audio to 16000 Hz, on which the model is trained.
     // setting a sample rate in AudioContext is not supported by most browsers at the moment.
@@ -216,27 +221,36 @@ class Home extends Component {
         pitchshift_worker.onmessage = (m) => {
           this.setState(m.data);
           if (m.data.hasOwnProperty("pitchshift_result")) {
-            resolve(m.data.pitchshift_result);
+            let result = m.data.pitchshift_result;
+            LPF.lowPassFilter(buf, 200, buffer.sampleRate, 1);
+            resolve(result);
           }
         };
         let buf = buffer.getChannelData(0)
         if (TEST) {
-          buf = buf.subarray(0, buffer.sampleRate * 10);
+          buf = buf.subarray(0, buffer.sampleRate * TEST_SECONDS);
         }
+
+        LPF.lowPassFilter(buf, 100, buffer.sampleRate, 1);
         pitchshift_worker.postMessage({
           buf,
           sampleRate: buffer.sampleRate,
         });
       });
 
+    // LPF.lowPassFilter(shifted, 300, buffer.sampleRate, 1);
     buffer.copyToChannel(shifted, 0, 0);
+    buffer.copyToChannel(shifted, 1, 0);
 
-    // let a = new Audio();
-    // let audioCtx = new AudioContext();
-    // let source = audioCtx.createBufferSource();
-    // source.buffer = buffer;
-    // source.connect(audioCtx.destination);
-    // source.start();
+    if (PLAY) {
+      let a = new Audio();
+      let audioCtx = new AudioContext();
+      let source = audioCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioCtx.destination);
+      source.start();
+    }
+
 
     let resampled = resample(buffer);
     let pitch_track = await new Promise(resolve => {
@@ -248,7 +262,7 @@ class Home extends Component {
           }
       };
       if (TEST) {
-        resampled = resampled.slice(0, 16000 * 10);
+        resampled = resampled.slice(0, 16000 * TEST_SECONDS);
       }
       myWorker.postMessage(resampled);
     });

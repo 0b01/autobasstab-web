@@ -2,6 +2,8 @@ import React from 'react'
 import { Button } from 'react-bootstrap'
 import './Tab.css'
 
+const HOP_MS = 20; // has to be < 64
+
 /**
  * Spleet button component, which triggers a source separation job.
  */
@@ -20,7 +22,7 @@ class SpleetButton extends React.Component {
 
 
   handleClick = (idx) => {
-    this.props.audioInstance.currentTime = idx * 1024 / 16000;
+    this.props.audioInstance.currentTime = idx / 100;
   }
 
   render() {
@@ -42,14 +44,14 @@ class SpleetButton extends React.Component {
         for (let i = 0; i < 4; i++) {
             txt += (note.string == (4-i-1) ? note.fret + "\n" : "-\n");
         }
-        ret.push(<pre className={"tabColumn " + (note.start < currentTime * 16000 / 1024 ? "past" : "")} key={note.start} onClick={() => this.handleClick(note.start)}>{txt}</pre>);
+        ret.push(<pre className={"tabColumn " + (note.start * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start} onClick={() => this.handleClick(note.start)}>{txt}</pre>);
 
         let gap = next.start - note.start;
         let multiples = gap / dur_mode;
         for (let i = 0; i < Math.ceil(Math.max(1, multiples)); i++) {
             let txt = "-\n-\n-\n-\n";
             let t = note.start + i * dur_mode;
-            ret.push(<pre className={"tabColumn " + (t < currentTime * 16000 / 1024 ? "past" : "")} key={note.start + i + "gap"} onClick={() => this.handleClick(t)}>{txt}</pre>)
+            ret.push(<pre className={"tabColumn " + (t * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start + i + "gap"} onClick={() => this.handleClick(t)}>{txt}</pre>)
         }
     }
 

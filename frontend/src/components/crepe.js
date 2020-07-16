@@ -12,6 +12,8 @@ const workercode = () => {
             var i = 0;
 
             self.postMessage({crepe_total: resampled.length, crepe_progress: 0});
+            const HOP_MS = 20;
+            let hop_length = 16000 / 1000 * HOP_MS; // 20 ms
 
             while (i + 1024 < resampled.length) {
                 tf.tidy(() => {
@@ -54,12 +56,12 @@ const workercode = () => {
                     crepe_result.freq.push(confidence > 0.4 ? predicted_hz : 0);
                     crepe_result.conf.push(confidence);
                     crepe_result.level.push(level);
-                    if (i % 102400 == 0) { // update every 10 steps
+                    if (i % (hop_length * 10) == 0) { // update every 10 steps
                         self.postMessage({crepe_progress: i});
                         // console.log(i);
                     }
                 });
-            i += 1024;
+            i += hop_length;
             }
             self.postMessage({crepe_result, crepe_progress: resampled.length});
         });
