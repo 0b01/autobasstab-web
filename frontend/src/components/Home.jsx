@@ -15,10 +15,42 @@ import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
 import * as LPF from "low-pass-filter";
 
+
 const TEST = false;
+const TEST_SECONDS = 10;
 const PLAY = false;
-const TEST_SECONDS = 30;
 const USE_UNMIXED = false;
+
+function qsToJson(qs) {
+  var res = {};
+  var pars = qs.split('&');
+  var kv, k, v;
+  for (i in pars) {
+    kv = pars[i].split('=');
+    k = kv[0];
+    v = kv[1];
+    res[k] = decodeURIComponent(v);
+  }
+  return res;
+}
+
+async function get_youtube_info(id, callback) {
+  var url = 'https://www.youtube.com/get_video_info?html5=1&video_id=' + id;
+  let page = await fetch(url);
+  var get_video_info = qsToJson(body);
+
+  // remapping urls into an array of objects
+  var tmp = get_video_info["url_encoded_fmt_stream_map"];
+  if (tmp) {
+    tmp = tmp.split(',');
+    for (i in tmp) {
+      tmp[i] = qsToJson(tmp[i]);
+    }
+    get_video_info["url_encoded_fmt_stream_map"] = tmp;
+  }
+  return get_video_info;
+}
+
 
 /**
  * Home component where main functionality happens, consisting of the main nav bar
@@ -183,6 +215,10 @@ class Home extends Component {
   }
 
   onTabClick = async (song) => {
+    // let info = await get_youtube_info("ml-v1bgMJDQ");
+    // console.log(info);
+    // return 0;
+
     var context = new (window.AudioContext || window.webkitAudioContext)();
     let audioSrc;
     if (USE_UNMIXED) {

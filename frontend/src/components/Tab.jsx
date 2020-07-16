@@ -13,13 +13,11 @@ class SpleetButton extends React.Component {
   }
 
   componentDidMount() {
-    this.interval = setInterval(() => this.setState({ time: Date.now() }), 100);
+    this.interval = setInterval(() => this.setState({ time: Date.now() }), 1000);
   }
   componentWillUnmount() {
     clearInterval(this.interval);
   }
-
-
 
   handleClick = (idx) => {
     this.props.audioInstance.currentTime = idx * HOP_MS / 1000;

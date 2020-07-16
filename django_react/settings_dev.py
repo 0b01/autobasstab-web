@@ -1,5 +1,23 @@
 import os
 
+# Application definition
+INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'api.apps.ApiConfig',
+    'frontend.apps.FrontendConfig',
+    'rest_framework',
+    'webpack_loader',
+    'huey.contrib.djhuey',
+    "corsheaders"
+]
+
+
 SECRET_KEY = 'default'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -37,3 +55,12 @@ HUEY = {
         'workers': int(os.getenv('HUEY_WORKERS', '1')),
     },
 }
+
+MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+)
+
+
+CORS_ORIGIN_ALLOW_ALL = True
+
