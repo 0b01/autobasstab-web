@@ -1,16 +1,21 @@
 import React, { Component } from 'react'
 import axios from 'axios'
-import { Alert, ProgressBar } from 'react-bootstrap'
+import { Alert, ProgressBar, Button } from 'react-bootstrap'
 import MusicPlayer from './MusicPlayer'
 import MyNavBar from './MyNavBar'
 import SongTable from './SongTable/SongTable'
 import DeleteModal from './SongTable/DeleteModal'
 import SpleetModal from './SongTable/SpleetModal'
 import UploadModal from './Upload/UploadModal'
+import Tab from './Tab'
 import * as tf from '@tensorflow/tfjs';
 import { buffer } from '@tensorflow/tfjs'
 import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
+// import * as LPF from "low-pass-filter";
+
+const TEST = false;
+
 
 
 /**
@@ -21,6 +26,7 @@ class Home extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      tab: [],
       pitchshift_total: 0,
       pitchshift_progress: 0,
       crepe_total: 0,
@@ -184,16 +190,8 @@ class Home extends Component {
         }
       }
     })();
+    // let audioSrc = song.url;
     console.log(audioSrc);
-
-    // var fetch = (url, resolve) => {
-    //   var request = new XMLHttpRequest();
-    //   request.open('GET', url, true);
-    //   request.responseType = 'arraybuffer';
-    //   request.onload = function () { resolve(request) }
-    //   request.send()
-    // }
-
 
 
     // perform resampling the audio to 16000 Hz, on which the model is trained.
@@ -221,8 +219,12 @@ class Home extends Component {
             resolve(m.data.pitchshift_result);
           }
         };
+        let buf = buffer.getChannelData(0)
+        if (TEST) {
+          buf = buf.subarray(0, buffer.sampleRate * 10);
+        }
         pitchshift_worker.postMessage({
-          buf: buffer.getChannelData(0),
+          buf,
           sampleRate: buffer.sampleRate,
         });
       });
@@ -236,7 +238,7 @@ class Home extends Component {
     // source.connect(audioCtx.destination);
     // source.start();
 
-    const resampled = resample(buffer);
+    let resampled = resample(buffer);
     let pitch_track = await new Promise(resolve => {
       let myWorker = new Worker(CrepeWorker);
       myWorker.onmessage = (m) => {
@@ -245,11 +247,25 @@ class Home extends Component {
             resolve(m.data.crepe_result);
           }
       };
+      if (TEST) {
+        resampled = resampled.slice(0, 16000 * 10);
+      }
       myWorker.postMessage(resampled);
     });
 
     let {arrangement, track} = this.run_notes(pitch_track);
-    console.log(arrangement, track);
+    let tab = [];
+    let i = 0, j = 0;
+    let start = 0;
+    while (i < arrangement.length && j < track.length) {
+        let string = arrangement[i++];
+        let fret = arrangement[i++];
+        let freq = track[j++];
+        let start = track[j++];
+        let dur = track[j++];
+        tab.push({string, fret, start, dur});
+    }
+    this.setState({tab});
   }
 
   run_notes = (crepe_result) => {
@@ -285,7 +301,7 @@ class Home extends Component {
     }
 
     let track = gn(crepe_result.freq, crepe_result.level);
-    let mut_arrangement = new Int8Array(track.length / 3 * 2).fill(22);
+    let mut_arrangement = new Uint8Array(track.length / 3 * 2).fill(22);
     frets(-12, mut_arrangement, track);
 
     return {arrangement: mut_arrangement, track};
@@ -374,6 +390,7 @@ class Home extends Component {
                 </span>
               </Alert>
             )}
+            <Tab tab={this.state.tab} audioInstance={this.state.audioInstance} />
             <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"PitchShift(" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ")"}/>
             <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={"PitchTrack("+this.state.crepe_progress +'/'+ this.state.crepe_total+")"}/>
             <SongTable
