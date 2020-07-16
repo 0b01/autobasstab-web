@@ -22,7 +22,7 @@ class SpleetButton extends React.Component {
 
 
   handleClick = (idx) => {
-    this.props.audioInstance.currentTime = idx / 100;
+    this.props.audioInstance.currentTime = idx * HOP_MS / 1000;
   }
 
   render() {

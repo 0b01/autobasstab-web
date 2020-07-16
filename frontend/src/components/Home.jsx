@@ -15,7 +15,7 @@ import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
 import * as LPF from "low-pass-filter";
 
-const TEST = true;
+const TEST = false;
 const PLAY = false;
 const TEST_SECONDS = 30;
 const USE_UNMIXED = false;
@@ -253,33 +253,32 @@ class Home extends Component {
 
 
     let resampled = resample(buffer);
-    let pitch_track = await new Promise(resolve => {
-      let myWorker = new Worker(CrepeWorker);
-      myWorker.onmessage = (m) => {
-          this.setState(m.data);
-          if (m.data.hasOwnProperty("crepe_result")) {
-            resolve(m.data.crepe_result);
+    let myWorker = new Worker(CrepeWorker);
+    myWorker.onmessage = (m) => {
+        this.setState(m.data);
+        if (m.data.hasOwnProperty("crepe_result")) {
+          let pitch_track = m.data.crepe_result;
+          let {arrangement, track} = this.run_notes(pitch_track);
+          let tab = [];
+          let i = 0, j = 0;
+          let start = 0;
+          while (i < arrangement.length && j < track.length) {
+              let string = arrangement[i++];
+              let fret = arrangement[i++];
+              let freq = track[j++];
+              let start = track[j++];
+              let dur = track[j++];
+              tab.push({string, fret, start, dur});
           }
-      };
-      if (TEST) {
-        resampled = resampled.slice(0, 16000 * TEST_SECONDS);
-      }
-      myWorker.postMessage(resampled);
-    });
-
-    let {arrangement, track} = this.run_notes(pitch_track);
-    let tab = [];
-    let i = 0, j = 0;
-    let start = 0;
-    while (i < arrangement.length && j < track.length) {
-        let string = arrangement[i++];
-        let fret = arrangement[i++];
-        let freq = track[j++];
-        let start = track[j++];
-        let dur = track[j++];
-        tab.push({string, fret, start, dur});
+          this.setState({tab});
+        }
+    };
+    if (TEST) {
+      resampled = resampled.slice(0, 16000 * TEST_SECONDS);
     }
-    this.setState({tab});
+    myWorker.postMessage(resampled);
+
+
   }
 
   run_notes = (crepe_result) => {

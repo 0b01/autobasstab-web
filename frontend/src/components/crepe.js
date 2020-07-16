@@ -57,8 +57,7 @@ const workercode = () => {
                     crepe_result.conf.push(confidence);
                     crepe_result.level.push(level);
                     if (i % (hop_length * 10) == 0) { // update every 10 steps
-                        self.postMessage({crepe_progress: i});
-                        // console.log(i);
+                        self.postMessage({crepe_result, crepe_progress: i});
                     }
                 });
             i += hop_length;
