@@ -24,7 +24,7 @@ class MyNavBar extends React.Component {
     return (
       <Navbar bg="light" variant="light" expand="lg">
         <Container>
-          <Navbar.Brand href="/">Spleeter Web</Navbar.Brand>
+          <Navbar.Brand href="/">AutoBassTab Web</Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse className="text-right">
             <Nav className="ml-auto">

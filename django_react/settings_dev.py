@@ -23,7 +23,7 @@ SECRET_KEY = 'default'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', "192.168.1.7"]
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', "192.168.1.7", "*"]
 
 # DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
 # OR

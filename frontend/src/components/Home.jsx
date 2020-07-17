@@ -15,11 +15,10 @@ import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
 import * as LPF from "low-pass-filter";
 
-
 const TEST = false;
 const TEST_SECONDS = 10;
 const PLAY = false;
-const USE_UNMIXED = true;
+const USE_UNMIXED = false;
 
 function qsToJson(qs) {
   var res = {};
@@ -430,8 +429,8 @@ class Home extends Component {
         <MyNavBar onUploadClick={this.onUploadClick} />
         <div className="jumbotron jumbotron-fluid bg-transparent">
           <div className="container secondary-color">
-            <h2 className="display-5">Song List</h2>
-            <p className="lead">Get started by uploading a song or separating an existing song.</p>
+            {/* <h2 className="display-5">Song List</h2>
+            <p className="lead">Get started by uploading a song or separating an existing song.</p> */}
             {task && (
               <Alert variant="success">
                 <span>
@@ -441,8 +440,8 @@ class Home extends Component {
               </Alert>
             )}
             <Tab tab={this.state.tab} audioInstance={this.state.audioInstance} />
-            <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"PitchShift(" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ")"}/>
-            <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={"PitchTrack("+this.state.crepe_progress +'/'+ this.state.crepe_total+")"}/>
+            <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ""}/>
+            <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={""+this.state.crepe_progress +'/'+ this.state.crepe_total+""}/>
             <SongTable
               data={songList}
               currentSongUrl={currentSongUrl}

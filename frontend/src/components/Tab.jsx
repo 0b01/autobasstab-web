@@ -7,7 +7,7 @@ const HOP_MS = 20; // has to be < 64
 /**
  * Spleet button component, which triggers a source separation job.
  */
-class SpleetButton extends React.Component {
+class Tab extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -59,4 +59,4 @@ class SpleetButton extends React.Component {
   }
 }
 
-export default SpleetButton
+export default Tab

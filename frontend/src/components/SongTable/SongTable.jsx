@@ -44,9 +44,9 @@ const spleetColFormatter = (cell, row, rowIndex, formatExtraData) => {
   const { onDeleteClick, onSpleetClick, onTabClick } = formatExtraData
   return (
     <div className="d-flex align-items-center justify-content-center">
-      <SpleetButton onClick={onSpleetClick} song={row} />
+      {/* <SpleetButton onClick={onSpleetClick} song={row} /> */}
       <TabButton onClick={onTabClick} song={row} />
-      <DeleteButton onClick={onDeleteClick} song={row} />
+      {/* <DeleteButton onClick={onDeleteClick} song={row} /> */}
     </div>
   )
 }
@@ -159,7 +159,7 @@ class SongTable extends React.Component {
         data={data}
         columns={columns}
         defaultSorted={sort}
-        expandRow={expandRow}
+        // expandRow={expandRow}
         bordered={false}
       />
     )
