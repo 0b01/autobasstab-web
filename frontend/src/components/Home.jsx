@@ -305,7 +305,7 @@ class Home extends Component {
 
 
   }
-  
+
   onRefresh = () => {
           let {arrangement, track} = this.run_notes(this.state.crepe_result);
           let tab = [];
@@ -434,8 +434,18 @@ class Home extends Component {
         <MyNavBar onUploadClick={this.onUploadClick} />
         <div className="jumbotron jumbotron-fluid bg-transparent">
           <div className="container secondary-color">
-            {/* <h2 className="display-5">Song List</h2>
-            <p className="lead">Get started by uploading a song or separating an existing song.</p> */}
+            {<div>
+              <h2 className="display-5">FAQ</h2>
+              <p>Q: What is this website?</p>
+              <p>A: It figures out the bassline and outputs the TAB.</p>
+              <p>Q: How to use?</p>
+              <p>A: Upload a song or paste in a Youtube link then click Tab button and wait a bit then press Refresh button.</p>
+              <p>Q: How does it work?</p>
+              <p>A: It runs a ~60MB machine learning model and then a custom algorithm compiled to WebAssembly.</p>
+              <p>Q: I have a suggestion./I found a bug./I have a feature request.</p>
+              <p>A: Join <a href="https://discord.gg/Q6pab8X" target="_blank">discord</a>.</p>
+            </div>
+            }
             {task && (
               <Alert variant="success">
                 <span>
