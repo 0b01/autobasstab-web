@@ -4,7 +4,7 @@ const workercode = () => {
         const cent_mapping = tf.add(tf.linspace(0, 7180, 360), tf.tensor(1997.3794084376191))
 
         var model;
-        tf.loadLayersModel('http://0.0.0.0:8000/static/model/model.json').then(model => {
+        tf.loadLayersModel('http://34.217.213.130/static/model/model.json').then(model => {
             let resampled = e.data;
 
             var crepe_result = {freq: [], conf: [], level: []};
@@ -57,11 +57,8 @@ const workercode = () => {
                     crepe_result.conf.push(confidence);
                     crepe_result.level.push(level);
                     if (i % (hop_length * 10) == 0) { // update every 10 steps
-                        self.postMessage({crepe_progress: i});
+                        self.postMessage({crepe_progress: i, crepe_result});
                         // console.log(i);
-                    }
-                    if (i % (hop_length * 500) == 0) { // update every 100 steps
-                        self.postMessage({crepe_result});
                     }
                 });
             i += hop_length;

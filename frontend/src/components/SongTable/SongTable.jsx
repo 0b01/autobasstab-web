@@ -6,6 +6,7 @@ import PausePlayButton from './PausePlayButton'
 import ProcessedSongTable from './ProcessedSongTable'
 import DeleteButton from './DeleteButton'
 import TabButton from './TabButton'
+import RefreshButton from './RefreshButton'
 import SpleetButton from './SpleetButton'
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css'
 import './SongTable.css'
@@ -41,11 +42,12 @@ const playColFormatter = (cell, row, rowIndex, formatExtraData) => {
  * Formatter function for separate button column.
  */
 const spleetColFormatter = (cell, row, rowIndex, formatExtraData) => {
-  const { onDeleteClick, onSpleetClick, onTabClick } = formatExtraData
+  const { onDeleteClick, onSpleetClick, onTabClick, onRefreshClick } = formatExtraData
   return (
     <div className="d-flex align-items-center justify-content-center">
       {/* <SpleetButton onClick={onSpleetClick} song={row} /> */}
       <TabButton onClick={onTabClick} song={row} />
+      <RefreshButton onClick={onRefreshClick} song={row} />
       {/* <DeleteButton onClick={onDeleteClick} song={row} /> */}
     </div>
   )
@@ -68,6 +70,7 @@ class SongTable extends React.Component {
       onDeleteClick,
       onSpleetClick,
       onTabClick,
+      onRefreshClick,
       onSepSongPauseClick,
       onSepSongPlayClick,
       onSrcSongPauseClick,
@@ -148,6 +151,7 @@ class SongTable extends React.Component {
           onDeleteClick,
           onSpleetClick,
           onTabClick,
+          onRefreshClick,
         }
       }
     ]

@@ -1,10 +1,10 @@
 import os
 import ffmpeg
 import numpy as np
-from spleeter import *
-from spleeter.audio.adapter import get_default_audio_adapter
-from spleeter.separator import Separator
-from spleeter.utils import *
+# from spleeter import *
+# from spleeter.audio.adapter import get_default_audio_adapter
+# from spleeter.separator import Separator
+# from spleeter.utils import *
 from django.conf import settings
 from .models import ProcessedTrack
 

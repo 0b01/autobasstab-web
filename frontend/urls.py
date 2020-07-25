@@ -1,7 +1,8 @@
 from django.urls import path
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from . import views
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='index.html'))
+    path('', views.index),
+    path('model.json', RedirectView.as_view(url='http://rickyhan.com/static/crepe_model_full/model.json', permanent=True)),
 ]

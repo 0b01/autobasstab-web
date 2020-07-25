@@ -64,6 +64,7 @@ class Home extends Component {
       pitchshift_progress: 0,
       crepe_total: 0,
       crepe_progress: 0,
+      crepe_result: [],
       showDeleteModal: false, // Whether to show delete track modal
       showSpleetModal: false, // Whether to show source separation modal
       showUploadModal: false, // Whether to show upload modal
@@ -293,8 +294,20 @@ class Home extends Component {
     myWorker.onmessage = (m) => {
         this.setState(m.data);
         if (m.data.hasOwnProperty("crepe_result")) {
-          let pitch_track = m.data.crepe_result;
-          let {arrangement, track} = this.run_notes(pitch_track);
+          // let pitch_track = m.data.crepe_result;
+	  // this.setState({crepe_result: pitch_track});
+        }
+    };
+    if (TEST) {
+      resampled = resampled.slice(0, 16000 * TEST_SECONDS);
+    }
+    myWorker.postMessage(resampled);
+
+
+  }
+  
+  onRefresh = () => {
+          let {arrangement, track} = this.run_notes(this.state.crepe_result);
           let tab = [];
           let i = 0, j = 0;
           let start = 0;
@@ -307,14 +320,6 @@ class Home extends Component {
               tab.push({string, fret, start, dur});
           }
           this.setState({tab});
-        }
-    };
-    if (TEST) {
-      resampled = resampled.slice(0, 16000 * TEST_SECONDS);
-    }
-    myWorker.postMessage(resampled);
-
-
   }
 
   run_notes = (crepe_result) => {
@@ -452,6 +457,7 @@ class Home extends Component {
               onDeleteClick={this.onDeleteClick}
               onSpleetClick={this.onSpleetClick}
               onTabClick={this.onTabClick}
+              onRefreshClick={this.onRefresh}
               onSepSongPauseClick={this.onSepSongPauseClick}
               onSepSongPlayClick={this.onSepSongPlayClick}
               onSrcSongPauseClick={this.onSrcSongPauseClick}

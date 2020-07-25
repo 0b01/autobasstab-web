@@ -2,6 +2,7 @@ import os
 
 # Application definition
 INSTALLED_APPS = [
+    "corsheaders",
     'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -14,7 +15,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'webpack_loader',
     'huey.contrib.djhuey',
-    "corsheaders"
 ]
 
 
@@ -23,7 +23,7 @@ SECRET_KEY = 'default'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', "192.168.1.7", "*"]
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', "172.26.12.246", "*"]
 
 # DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
 # OR
@@ -56,11 +56,24 @@ HUEY = {
     },
 }
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE_CLASSES = [                                                
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-)
+    'django.middleware.common.CommonMiddleware',              
+]
+
+MIDDLEWARE = [                                                
+    'api.cors_middleware.CustomCorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',              
+    'django.middleware.security.SecurityMiddleware',          
+    'whitenoise.middleware.WhiteNoiseMiddleware',             
+    'django.contrib.sessions.middleware.SessionMiddleware',   
+    'django.middleware.csrf.CsrfViewMiddleware',              
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',   
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]                                                             
+
 
 
 CORS_ORIGIN_ALLOW_ALL = True
-
