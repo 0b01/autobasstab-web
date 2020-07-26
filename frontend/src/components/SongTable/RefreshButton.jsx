@@ -11,9 +11,9 @@ class RefreshButton extends React.Component {
   }
 
   render() {
-    if (this.props.canRefresh) {
+    if (this.props.canRefresh || !this.props.tabbing) {
       return (
-        <Button variant="warning" className="tab-btn ml-2" onClick={this.handleClick}>
+        <Button variant="warning" className="tab-btn ml-2" onClick={this.handleClick} disabled={!this.props.tabbing}>
           Refresh
         </Button>
       )

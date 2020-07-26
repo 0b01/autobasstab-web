@@ -309,6 +309,7 @@ class Home extends Component {
   }
 
   onRefresh = () => {
+	  this.setState({canRefresh: false});
           let {arrangement, track} = this.run_notes(this.state.crepe_result);
           let tab = [];
           let i = 0, j = 0;
@@ -404,7 +405,7 @@ class Home extends Component {
   componentDidMount() {
     this.loadData()
     // Auto-refresh data every 30 seconds
-    setInterval(this.loadData, 30000)
+    // setInterval(this.loadData, 30000)
   }
 
   render() {
@@ -446,6 +447,7 @@ class Home extends Component {
               <p>A: It runs a ~60MB deep learning model in your browser.</p>
               <p>Q: I have a suggestion/I found a bug/I have a feature request.</p>
               <p>A: Join <a href="https://discord.gg/Q6pab8X" target="_blank">discord</a> or <a href="mailto:bass@rickyhan.com">email me</a>.</p>
+              <h3 className="display-5">Note: Neural network inference takes a lot of compute so you should use this website on a computer.</h3>
             </div>
             }
             {task && (
@@ -456,12 +458,12 @@ class Home extends Component {
                 </span>
               </Alert>
             )}
-            <RefreshButton onClick={this.onRefresh} canRefresh={this.canRefresh}/>
             <Tab tab={this.state.tab} audioInstance={this.state.audioInstance} />
+            <RefreshButton onClick={this.onRefresh} canRefresh={this.state.canRefresh} tabbing={this.state.tabbing}/>
             <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ""}/>
             <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={""+this.state.crepe_progress +'/'+ this.state.crepe_total+""}/>
             <SongTable
-              disabled={this.tabbing}
+              disabled={this.state.tabbing}
               data={songList}
               currentSongUrl={currentSongUrl}
               isPlaying={isPlaying}

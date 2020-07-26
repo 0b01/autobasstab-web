@@ -116,7 +116,7 @@ class SongTable extends React.Component {
           currentSongUrl: currentSongUrl,
           isPlaying: isPlaying,
           handleSrcSongPause: onSrcSongPauseClick,
-          handleSrcSongPlay: onSrcSongPlayClick
+          handleSrcSongPlay: onSrcSongPlayClick,
           disabled: disabled,
         },
         headerStyle: () => {
@@ -154,6 +154,7 @@ class SongTable extends React.Component {
           onSpleetClick,
           onTabClick,
           onRefreshClick,
+          disabled,
         }
       }
     ]
