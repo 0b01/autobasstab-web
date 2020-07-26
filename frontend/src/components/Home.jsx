@@ -14,7 +14,6 @@ import { buffer } from '@tensorflow/tfjs'
 import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
 import * as LPF from "low-pass-filter";
-import RefreshButton from './SongTable/RefreshButton'
 
 const TEST = false;
 const TEST_SECONDS = 10;
@@ -130,6 +129,7 @@ class Home extends Component {
       })
     }
   }
+
 
   onSepSongPauseClick = song => {
     this.setState({
@@ -458,8 +458,7 @@ class Home extends Component {
                 </span>
               </Alert>
             )}
-            <Tab tab={this.state.tab} audioInstance={this.state.audioInstance} />
-            <RefreshButton onClick={this.onRefresh} canRefresh={this.state.canRefresh} tabbing={this.state.tabbing}/>
+            <Tab tab={this.state.tab} audioInstance={this.state.audioInstance} onRefresh={this.onRefresh} canRefresh={this.state.canRefresh} tabbing={this.state.tabbing}/>
             <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ""}/>
             <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={""+this.state.crepe_progress +'/'+ this.state.crepe_total+""}/>
             <SongTable
@@ -480,6 +479,11 @@ class Home extends Component {
               onSrcSongPlayClick={this.onSrcSongPlayClick}
             />
           </div>
+          <pre>
+Changelog:
+  07/25/2020: update UI
+  07/26/2020: add download as text
+          </pre>
         </div>
         <MusicPlayer
           getAudioInstance={this.getAudioInstance}
