@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from 'react-bootstrap'
+import { Button, Spinner } from 'react-bootstrap'
 import './RefreshButton.css'
 
 /**
@@ -11,11 +11,19 @@ class RefreshButton extends React.Component {
   }
 
   render() {
-    return (
-      <Button variant="warning" className="tab-btn ml-2" onClick={this.handleClick}>
-        Refresh
-      </Button>
-    )
+    if (this.props.canRefresh) {
+      return (
+        <Button variant="warning" className="tab-btn ml-2" onClick={this.handleClick}>
+          Refresh
+        </Button>
+      )
+    } else {
+      return (
+        <Spinner animation="border" role="status">
+          <span className="sr-only">Loading...</span>
+        </Spinner>
+      )
+    }
   }
 }
 
