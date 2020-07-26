@@ -439,11 +439,11 @@ class Home extends Component {
               <p>Q: What is this website?</p>
               <p>A: It figures out the bassline and outputs the TAB.</p>
               <p>Q: How to use?</p>
-              <p>A: Upload a song or paste in a Youtube link then click Tab button and wait a bit then press Refresh button.</p>
+              <p>A: Upload a song or paste in a Youtube link then click Tab button and press Refresh button.</p>
               <p>Q: How does it work?</p>
-              <p>A: It runs a ~60MB machine learning model and then a custom algorithm compiled to WebAssembly.</p>
-              <p>Q: I have a suggestion./I found a bug./I have a feature request.</p>
-              <p>A: Join <a href="https://discord.gg/Q6pab8X" target="_blank">discord</a>.</p>
+              <p>A: It runs a ~60MB deep learning model in your browser.</p>
+              <p>Q: I have a suggestion/I found a bug/I have a feature request.</p>
+              <p>A: Join <a href="https://discord.gg/Q6pab8X" target="_blank">discord</a> or <a href="mailto:bass@rickyhan.com">email me</a>.</p>
             </div>
             }
             {task && (
