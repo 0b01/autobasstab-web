@@ -12,7 +12,7 @@ class TabButton extends React.Component {
 
   render() {
     return (
-      <Button variant="warning" className="tab-btn ml-2" onClick={this.handleClick}>
+      <Button variant={this.props.disabled? "disabled" : "warning"} className="tab-btn ml-2" onClick={this.handleClick}>
         Tab
       </Button>
     )

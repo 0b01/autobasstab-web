@@ -42,12 +42,12 @@ const playColFormatter = (cell, row, rowIndex, formatExtraData) => {
  * Formatter function for separate button column.
  */
 const spleetColFormatter = (cell, row, rowIndex, formatExtraData) => {
-  const { onDeleteClick, onSpleetClick, onTabClick, onRefreshClick } = formatExtraData
+  const { onDeleteClick, onSpleetClick, onTabClick, onRefreshClick, disabled } = formatExtraData
   return (
     <div className="d-flex align-items-center justify-content-center">
       {/* <SpleetButton onClick={onSpleetClick} song={row} /> */}
-      <TabButton onClick={onTabClick} song={row} />
-      <RefreshButton onClick={onRefreshClick} song={row} />
+      <TabButton onClick={onTabClick} song={row} disabled={disabled}/>
+      {/* <RefreshButton onClick={onRefreshClick} song={row} /> */}
       {/* <DeleteButton onClick={onDeleteClick} song={row} /> */}
     </div>
   )
@@ -75,6 +75,7 @@ class SongTable extends React.Component {
       onSepSongPlayClick,
       onSrcSongPauseClick,
       onSrcSongPlayClick,
+      disabled,
       onExpandRow,
       onExpandAll
     } = this.props
@@ -116,6 +117,7 @@ class SongTable extends React.Component {
           isPlaying: isPlaying,
           handleSrcSongPause: onSrcSongPauseClick,
           handleSrcSongPlay: onSrcSongPlayClick
+          disabled: disabled,
         },
         headerStyle: () => {
           return { width: '65px' }

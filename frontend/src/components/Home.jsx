@@ -14,6 +14,7 @@ import { buffer } from '@tensorflow/tfjs'
 import CrepeWorker from "./crepe.js";
 import PitchShiftWorker from "./pitchshift.js";
 import * as LPF from "low-pass-filter";
+import RefreshButton from './SongTable/RefreshButton'
 
 const TEST = false;
 const TEST_SECONDS = 10;
@@ -59,6 +60,8 @@ class Home extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      tabbing: false,
+      canRefresh: false,
       tab: [],
       pitchshift_total: 0,
       pitchshift_progress: 0,
@@ -215,6 +218,7 @@ class Home extends Component {
   }
 
   onTabClick = async (song) => {
+    this.setState({tabbing: true});
     console.log(song);
     // let info = await get_youtube_info("ml-v1bgMJDQ");
     // console.log(info);
@@ -288,11 +292,11 @@ class Home extends Component {
       source.start();
     }
 
-
     let resampled = resample(buffer);
     let myWorker = new Worker(CrepeWorker);
     myWorker.onmessage = (m) => {
         this.setState(m.data);
+        this.setState({canRefresh: true});
         if (m.data.hasOwnProperty("crepe_result")) {
           // let pitch_track = m.data.crepe_result;
 	  // this.setState({crepe_result: pitch_track});
@@ -302,8 +306,6 @@ class Home extends Component {
       resampled = resampled.slice(0, 16000 * TEST_SECONDS);
     }
     myWorker.postMessage(resampled);
-
-
   }
 
   onRefresh = () => {
@@ -437,7 +439,7 @@ class Home extends Component {
             {<div>
               <h2 className="display-5">FAQ</h2>
               <p>Q: What is this website?</p>
-              <p>A: It figures out the bassline and outputs the TAB.</p>
+              <p>A: It transcribes bassline and outputs TAB.</p>
               <p>Q: How to use?</p>
               <p>A: Upload a song or paste in a Youtube link then click Tab button and press Refresh button.</p>
               <p>Q: How does it work?</p>
@@ -454,10 +456,12 @@ class Home extends Component {
                 </span>
               </Alert>
             )}
+            <RefreshButton onClick={this.onRefresh} canRefresh={this.canRefresh}/>
             <Tab tab={this.state.tab} audioInstance={this.state.audioInstance} />
             <ProgressBar now={this.state.pitchshift_progress / this.state.pitchshift_total * 100} label={"" + this.state.pitchshift_progress +"/"+ this.state.pitchshift_total + ""}/>
             <ProgressBar now={this.state.crepe_progress / this.state.crepe_total * 100} label={""+this.state.crepe_progress +'/'+ this.state.crepe_total+""}/>
             <SongTable
+              disabled={this.tabbing}
               data={songList}
               currentSongUrl={currentSongUrl}
               isPlaying={isPlaying}
