@@ -49,7 +49,7 @@ class Tab extends React.Component {
             txt += (note.string == (4-i-1) ? note.fret : "-");
         }
         if ((note.start+note.dur)*HOP_MS/1000 > (beat_count+1)*4*60/this.state.bpm + this.state.offset)
-		ret.push("||||");
+	    { ret.push("||||"); beat_count +=1; }
         ret.push(txt);
 
         let gap = next.start - note.start;
@@ -59,7 +59,7 @@ class Tab extends React.Component {
             let t = note.start + i * dur_mode;
             ret.push(txt)
 	    if (t*HOP_MS/1000 > (beat_count+1)*4*60/this.state.bpm + this.state.offset)
-		ret.push("||||");
+	    { ret.push("||||"); beat_count +=1; }
         }
     }
     let transposed = "";
@@ -149,7 +149,7 @@ class Tab extends React.Component {
 	      <Form.Group controlId="formBasicEmail">
 	        <Form.Label>BPM</Form.Label>
 	        <Form.Control type="number" placeholder="BPM" onChange={this.changeBPM} value={this.state.bpm} />
-	        <Form.Label>offset</Form.Label>
+	        <Form.Label>Offset (seconds)</Form.Label>
 	        <Form.Control type="number" placeholder="beat offset" onChange={this.changeOffset} value={this.state.offset}/>
 	      </Form.Group>
 	    </Form>
