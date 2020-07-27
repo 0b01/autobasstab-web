@@ -296,10 +296,13 @@ class Home extends Component {
     let myWorker = new Worker(CrepeWorker);
     myWorker.onmessage = (m) => {
         this.setState(m.data);
-        this.setState({canRefresh: true});
         if (m.data.hasOwnProperty("crepe_result")) {
+          this.setState({canRefresh: true});
+	}
+        if (m.data.hasOwnProperty("crepe_done")) {
           // let pitch_track = m.data.crepe_result;
 	  // this.setState({crepe_result: pitch_track});
+          this.onRefresh();
         }
     };
     if (TEST) {
@@ -479,10 +482,13 @@ class Home extends Component {
               onSrcSongPlayClick={this.onSrcSongPlayClick}
             />
           </div>
-          <pre>
+          <pre >
 Changelog:
-  07/25/2020: update UI
-  07/26/2020: add download as text
+  07/25/2020:
+    update UI to make workflow less confusing
+  07/26/2020:
+    add download as text button
+    auto refresh when crepe finishes
           </pre>
         </div>
         <MusicPlayer

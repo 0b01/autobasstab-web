@@ -56,14 +56,18 @@ const workercode = () => {
                     crepe_result.freq.push(confidence > 0.4 ? predicted_hz : 0);
                     crepe_result.conf.push(confidence);
                     crepe_result.level.push(level);
-                    if (i % (hop_length * 10) == 0) { // update every 10 steps
-                        self.postMessage({crepe_progress: i, crepe_result});
-                        // console.log(i);
+                    if (i % (hop_length * 10) == 0) {
+                        self.postMessage({crepe_progress: i});
                     }
+                    if (i % (hop_length * 100) == 0) {
+                        self.postMessage({crepe_result});
+                    }
+
                 });
             i += hop_length;
             }
             self.postMessage({crepe_result, crepe_progress: resampled.length});
+            self.postMessage({crepe_done: true});
         });
 
     }

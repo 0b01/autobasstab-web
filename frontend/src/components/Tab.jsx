@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from 'react-bootstrap'
+import { Button, Form } from 'react-bootstrap'
 import './Tab.css'
 import RefreshButton from './SongTable/RefreshButton'
 const HOP_MS = 20; // has to be < 64
@@ -10,6 +10,10 @@ const HOP_MS = 20; // has to be < 64
 class Tab extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      bpm: 120,
+      offset: 0.1,
+    }
   }
 
   componentDidMount() {
@@ -33,6 +37,8 @@ class Tab extends React.Component {
     tab_clone.sort((a,b) => a.dur > b.dur ? 1 : -1);
     let dur_mode = tab_clone[Math.floor(tab_clone.length/2)].dur;
 
+	  let beat_count = 0;
+
 
     for (var i=0; i < tab.length - 1; i++){
         let note = tab[i];
@@ -42,6 +48,8 @@ class Tab extends React.Component {
         for (let i = 0; i < 4; i++) {
             txt += (note.string == (4-i-1) ? note.fret : "-");
         }
+        if ((note.start+note.dur)*HOP_MS/1000 > (beat_count+1)*4*60/this.state.bpm + this.state.offset)
+		ret.push("||||");
         ret.push(txt);
 
         let gap = next.start - note.start;
@@ -50,6 +58,8 @@ class Tab extends React.Component {
             let txt = "----";
             let t = note.start + i * dur_mode;
             ret.push(txt)
+	    if (t*HOP_MS/1000 > (beat_count+1)*4*60/this.state.bpm + this.state.offset)
+		ret.push("||||");
         }
     }
     let transposed = "";
@@ -70,7 +80,14 @@ class Tab extends React.Component {
     element.download = "tab.txt";
     document.body.appendChild(element); // Required for this to work in FireFox
     element.click();
+  }
 
+  changeBPM = (bpm) => {
+    this.setState({bpm: bpm.target.value})
+  }
+
+  changeOffset = (offset) => {
+    this.setState({offset: offset.target.value})
   }
 
   render() {
@@ -86,16 +103,24 @@ class Tab extends React.Component {
     tab_clone.sort((a,b) => a.dur > b.dur ? 1 : -1);
     let dur_mode = tab_clone[Math.floor(tab_clone.length/2)].dur;
 
-
+    let beat_count = 0;
     for (var i=0; i < tab.length - 1; i++){
         let note = tab[i];
         let next = tab[i + 1];
 
         let txt = "";
         for (let i = 0; i < 4; i++) {
-            txt += (note.string == (4-i-1) ? note.fret + "\n" : "-\n");
+	    let empty = (note.fret).toString().length == 2  ? "--\n" : "-\n";
+            txt += (note.string == (4-i-1) ? note.fret + "\n" : empty);
         }
-        ret.push(<pre className={"tabColumn " + (note.start * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start} onClick={() => this.handleClick(note.start)}>{txt}</pre>);
+
+	    if ((note.start+note.dur)*HOP_MS/1000 > (beat_count+1)*4*60/this.state.bpm + this.state.offset)
+              {
+		    ret.push(<pre className={"tabColumn " + (note.start * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start + i + "bar"} onClick={() => this.handleClick(t)}>{"|\n|\n|\n|\n"}</pre>)
+		    beat_count += 1;
+              }
+
+        ret.push(<pre className={"tabColumn " + (note.start * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start + " " +note.dur} onClick={() => this.handleClick(note.start)}>{txt}</pre>);
 
         let gap = next.start - note.start;
         let multiples = gap / dur_mode;
@@ -103,15 +128,34 @@ class Tab extends React.Component {
             let txt = "-\n-\n-\n-\n";
             let t = note.start + i * dur_mode;
             ret.push(<pre className={"tabColumn " + (t * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start + i + "gap"} onClick={() => this.handleClick(t)}>{txt}</pre>)
+	    if (t*HOP_MS/1000 > (beat_count+1)*4*60/this.state.bpm + this.state.offset)
+              {
+		    ret.push(<pre className={"tabColumn " + (t * HOP_MS / 1000 < currentTime ? "past" : "")} key={note.start + i + "gap" + "bar"} onClick={() => this.handleClick(t)}>{"|\n|\n|\n|\n"}</pre>)
+		beat_count += 1;
+              }
+
         }
+
+        // bpm = bpm beat/minute
+        // 1 hyphen = dur_mode * HOP_MS / 1000 seconds
+	// 4*60/bpm * dur_mode * HOP_MS / 1000 hyphens = 4*60/bpm seconds = 4 beats = bar
     }
 
     return (
         <div>
          {ret}
 	  <br/>
+	    <Form>
+	      <Form.Group controlId="formBasicEmail">
+	        <Form.Label>BPM</Form.Label>
+	        <Form.Control type="number" placeholder="BPM" onChange={this.changeBPM} value={this.state.bpm} />
+	        <Form.Label>offset</Form.Label>
+	        <Form.Control type="number" placeholder="beat offset" onChange={this.changeOffset} value={this.state.offset}/>
+	      </Form.Group>
+	    </Form>
+
           {refresh_btn}
-	  <Button onClick={this.onDownload}>Download</Button>
+          <Button onClick={this.onDownload}>Download</Button>
           
         </div>
     );
