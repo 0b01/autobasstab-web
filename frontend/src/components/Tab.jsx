@@ -29,7 +29,7 @@ class Tab extends React.Component {
 
   build_txt = () => {
     let {tab} = this.props;
-    let ret = [];
+    let ret = [];ret.push("||||");
     if (tab.length === 0) return (<div></div>);
     let currentTime = this.props.audioInstance?.currentTime;
 
@@ -94,6 +94,8 @@ class Tab extends React.Component {
 	  let refresh_btn = (<RefreshButton onClick={this.props.onRefresh} canRefresh={this.props.canRefresh} tabbing={this.props.tabbing} />);
     let {tab} = this.props;
     let ret = [];
+    ret.push(<pre className={"tabColumn " + (1 * HOP_MS / 1000 < currentTime ? "past" : "")} key={"first" + "bar"} onClick={() => this.handleClick(1)}>{"|\n|\n|\n|\n"}</pre>);
+
     if (tab.length === 0) return (<div>
 	    {refresh_btn}
 	    </div>);
